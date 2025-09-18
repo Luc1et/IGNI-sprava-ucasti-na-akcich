@@ -1,0 +1,21 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.db
+
+# Env
+.venv/
+env/
+venv/
+ENV/
+*.env
+
+# IDE
+.vscode/
+.idea/
+
+# Other
+
+prompt_igni.md
