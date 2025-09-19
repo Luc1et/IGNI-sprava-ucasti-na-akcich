@@ -1,34 +1,33 @@
 import os
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker, declarative_base
+from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker
+from sqlalchemy.orm import declarative_base
 from dotenv import load_dotenv
 
-# Načti .env soubor (pokud existuje)
+# Načti .env soubor
 load_dotenv()
 
-# Base class pro ORM modely
 Base = declarative_base()
 
-# Zjisti prostředí
-ENV = os.getenv("IGNI_ENV", "local")  # default: local
+# Přepni prostředí
+ENV = os.getenv("IGNI_ENV", "local")
 
-if ENV == "pythonanywhere":
-    # Připojení na MySQL z proměnných prostředí
-    DB_USER = os.getenv("DB_USER")
-    DB_PASS = os.getenv("DB_PASS")
-    DB_NAME = os.getenv("DB_NAME")
-    DB_HOST = os.getenv("DB_HOST")
-
-    if not all([DB_USER, DB_PASS, DB_NAME, DB_HOST]):
-        raise ValueError("Chybí databázové proměnné v .env souboru pro PythonAnywhere!")
-
-    SQLALCHEMY_DATABASE_URL = f"mysql+mysqlconnector://{DB_USER}:{DB_PASS}@{DB_HOST}/{DB_NAME}"
+if ENV == "local":
+    DATABASE_URL = os.getenv("DATABASE_URL")  # z .env.local
+elif ENV == "prod":
+    DATABASE_URL = os.getenv("DATABASE_URL")  # z Railway
 else:
-    # Lokální SQLite
-    SQLALCHEMY_DATABASE_URL = "sqlite:///./igni_local.db"
+    raise ValueError("Neznámé prostředí, zkontroluj IGNI_ENV!")
 
-# Vytvoření engine a session
-engine = create_engine(
-    SQLALCHEMY_DATABASE_URL, connect_args={"check_same_thread": False} if "sqlite" in SQLALCHEMY_DATABASE_URL else {}
-)
-SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+if not DATABASE_URL:
+    raise ValueError("Chybí DATABASE_URL v .env souboru!")
+
+# Async engine
+engine = create_async_engine(DATABASE_URL, echo=True, future=True)
+
+# Async session factory
+AsyncSessionLocal = async_sessionmaker(bind=engine, autoflush=False, expire_on_commit=False)
+
+# Dependency pro FastAPI
+async def get_db():
+    async with AsyncSessionLocal() as session:
+        yield session

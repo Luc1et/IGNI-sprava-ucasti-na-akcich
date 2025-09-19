@@ -5,4 +5,4 @@ pydantic
 bcrypt
 python-jose[cryptography]
 python-multipart
-asgiref
+asyncpg

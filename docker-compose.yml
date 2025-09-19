@@ -1,0 +1,29 @@
+# --------------------------------------------------------
+# Tento soubor používám pro lokální vývoj IGNI.
+# Spouští mi PostgreSQL databázi v Dockeru, takže si ji
+# nemusím instalovat přímo do systému.
+# Díky tomu mám databázi izolovanou, snadno ji smažu
+# a znovu vytvořím, a hlavně všichni vývojáři (nebo já
+# na jiném PC) budou mít stejnou verzi a nastavení.
+#
+# Jak to používám:
+#   docker compose up -d   → spustím databázi
+#   docker compose down    → zastavím databázi
+# --------------------------------------------------------
+
+services:
+  db:
+    image: postgres:16
+    container_name: igni-postgres
+    restart: always
+    environment:
+      POSTGRES_USER: igni_user
+      POSTGRES_PASSWORD: secret
+      POSTGRES_DB: igni_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+volumes:
+  pgdata:
